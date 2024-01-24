@@ -2,20 +2,20 @@ version: '3.5'
 
 services:
     mariadb:
-        build: ./mariadb
+        build: ./requirements/mariadb/.
         container_name: mariadb
-        image: mariadb
+        image: mariadb:v8
         env_file:
             - .env
         restart: always
         volumes:
-            - data_db:/var/lib/mysql/
+            - db:/var/lib/mysql/
         networks:
             - inception
     nginx:
-        build: ./nginx
+        build: ./requirements/nginx/.
         container_name: nginx
-        image: nginx
+        image: nginx:v8
         env_file:
             - .env
         ports:
@@ -24,12 +24,12 @@ services:
         depends_on:
             - wordpress
         volumes:
-            - data:/var/www/html/
+            - wordpress:/var/www/html/
         networks:
             - inception
     wordpress:
-        build: ./wordpress
-        image: wordpress
+        build: ./requirements/wordpress/.
+        image: wordpress:v8
         container_name: wordpress
         env_file:
             - .env
@@ -37,22 +37,32 @@ services:
         depends_on:
             - mariadb
         volumes:
-            - data:/var/www/html/
+            - wordpress:/var/www/html/
         
         networks:
             - inception
+    adminer:
+        build: ./requirements/bonus/adminer/.
+        image: adminer:v8
+        container_name: adminer
+        restart: always
+        ports:
+            - 8080:8080
+        networks:
+            - inception
 volumes:
-    data:
+    db:
         driver: local
         driver_opts:
-            device : /Users/mqaos/Desktop/7elma/data
+            device : $HOME/data/db
             type : none
             o: bind
-    data_db:
+    wordpress:
         driver: local
         driver_opts:
-            device: /Users/mqaos/Desktop/7elma/data_db
+            device: $HOME/data/wordpress
             type: none
             o: bind
 networks:
-    inception:      
+    inception:
+        name: inception

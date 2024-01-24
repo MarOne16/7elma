@@ -1,19 +1,32 @@
+DATA_DIR :=  $(HOME)/data
+WORDPRESS_DIR := $(DATA_DIR)/wordpress
+DB_DIR := $(DATA_DIR)/db
 
-start:
-	docker-compose -f docker-compose.yaml start
+ifeq ($(OS), linux)
+	sudo := sudo
+else
+	sudo :=""
+endif
+
+create-dirs:
+	@mkdir -p $(DATA_DIR)
+	@mkdir -p $(WORDPRESS_DIR)
+	@mkdir -p $(DB_DIR)
+
+up: create-dirs
+	@docker-compose -f ./srcs/docker-compose.yaml up --build -d
+
+start: create-dirs
+	@docker-compose -f ./srcs/docker-compose.yaml start
 
 stop:
-	docker-compose -f docker-compose.yaml stop
-
-up:
-	docker-compose -f docker-compose.yaml up --build
+	@docker-compose -f ./srcs/docker-compose.yaml stop
 
 down:
-	docker-compose -f docker-compose.yaml down
+	@docker-compose -f ./srcs/docker-compose.yaml down
 
 clean:
-	docker-compose -f docker-compose.yaml down -v
-
+	@docker-compose -f ./srcs/docker-compose.yaml down -v
 clean-images: clean
 	@images=$$(docker images -q); \
 	if [ -n "$$images" ]; then \
@@ -21,10 +34,9 @@ clean-images: clean
 	fi
 
 fclean: clean-images
-	rm -rf ./data_db/* -y
-	rm -rf ./data/* -y
+	@$(sudo) rm -rf $(HOME)/data/
 
 prune: fclean
-	docker system prune -af --volumes
+	@docker system prune -af --volumes
 
 .PHONY: clean fclean down up prune clean-images
